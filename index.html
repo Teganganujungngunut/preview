@@ -51,12 +51,23 @@
 <script>
   const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQvcvccennJrLifuLh1_5pgrJ9ZDlWfm8u9KcDIVR7wlkxw4Lv7ignzW6E6H8q8LfvSxpphU9nmOR5K/pub?gid=420915734&single=true&output=csv";
 
-  // Fungsi konversi URL Google Drive ke bentuk yang bisa ditampilkan
+  // Fungsi konversi semua jenis link Google Drive ke direct image
   function convertDriveUrl(url) {
-    const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
-    if (match && match[1]) {
-      return `https://drive.google.com/uc?export=view&id=${match[1]}`;
+    if (!url) return "";
+
+    // format 1: https://drive.google.com/file/d/FILE_ID/view
+    const match1 = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+
+    // format 2: https://drive.google.com/open?id=FILE_ID
+    const match2 = url.match(/id=([a-zA-Z0-9_-]+)/);
+
+    const fileId = match1 ? match1[1] : (match2 ? match2[1] : null);
+
+    if (fileId) {
+      return `https://drive.google.com/uc?export=view&id=${fileId}`;
     }
+
+    // jika bukan Google Drive link
     return url;
   }
 
@@ -67,7 +78,7 @@
       complete: function (results) {
         const data = results.data;
 
-        // Buat opsi filter berdasarkan KODE GARDU
+        // Buat filter KODE GARDU unik
         const garduSet = new Set();
         data.forEach(item => {
           const gardu = item["KODE GARDU (ditulis huruf besar tanpa spasi, contoh ED001)"];
@@ -77,10 +88,10 @@
           $("#filterGardu").append(`<option value="${gardu}">${gardu}</option>`);
         });
 
-        // Isi tabel
+        // Buat isi tabel
         let tbodyHTML = "";
         data.forEach(row => {
-          const fotoUrl = row["FOTO TEGANGAN KWH METER"] ? convertDriveUrl(row["FOTO TEGANGAN KWH METER"]) : "";
+          const fotoUrl = convertDriveUrl(row["FOTO TEGANGAN KWH METER"]);
           tbodyHTML += `<tr>
             <td>${row.Timestamp || ""}</td>
             <td>${row["KODE GARDU (ditulis huruf besar tanpa spasi, contoh ED001)"] || ""}</td>
@@ -107,7 +118,7 @@
           }
         });
 
-        // Filter berdasarkan KODE GARDU
+        // Filter KODE GARDU
         $("#filterGardu").on("change", function () {
           const val = $(this).val();
           if (val) {
