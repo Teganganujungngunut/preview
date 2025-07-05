@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Preview Data Spreadsheet</title>
+<title>Data Spreadsheet dengan Gambar</title>
 
 <!-- Bootstrap CSS -->
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
@@ -21,9 +21,8 @@
 <body>
 
 <div class="container mt-4">
-  <h2 class="mb-4">Data Produk dari Spreadsheet</h2>
+  <h2 class="mb-4">Data dari Spreadsheet</h2>
 
-  <!-- Filter kategori -->
   <div class="mb-3">
     <label for="filterKategori" class="form-label">Filter Kategori:</label>
     <select id="filterKategori" class="form-select" style="max-width: 300px;">
@@ -44,17 +43,11 @@
   </table>
 </div>
 
-<!-- jQuery -->
 <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
-
-<!-- DataTables JS -->
 <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-
-<!-- PapaParse untuk parsing CSV -->
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
 <script>
-  // Ganti ini dengan link CSV hasil publish spreadsheet kamu
   const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQvcvccennJrLifuLh1_5pgrJ9ZDlWfm8u9KcDIVR7wlkxw4Lv7ignzW6E6H8q8LfvSxpphU9nmOR5K/pub?gid=420915734&single=true&output=csv";
 
   $(document).ready(function() {
@@ -64,7 +57,7 @@
       complete: function(results) {
         const data = results.data;
 
-        // Isi filter kategori unik
+        // Ambil kategori unik
         const kategoriSet = new Set();
         data.forEach(item => {
           if(item.Kategori) kategoriSet.add(item.Kategori);
@@ -73,7 +66,7 @@
           $("#filterKategori").append(`<option value="${kat}">${kat}</option>`);
         });
 
-        // Buat isi tabel
+        // Isi tabel
         let tbodyHTML = "";
         data.forEach(row => {
           tbodyHTML += `<tr>
@@ -85,7 +78,7 @@
         });
         $("#dataTable tbody").html(tbodyHTML);
 
-        // Inisialisasi DataTables
+        // Init DataTables
         const table = $('#dataTable').DataTable({
           pageLength: 10,
           lengthChange: false,
@@ -101,9 +94,9 @@
           }
         });
 
-        // Event filter kategori
+        // Filter kategori
         $("#filterKategori").on("change", function() {
-          let val = $(this).val();
+          const val = $(this).val();
           if(val) {
             table.column(2).search('^' + val + '$', true, false).draw();
           } else {
