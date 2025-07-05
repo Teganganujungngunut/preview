@@ -75,11 +75,16 @@
 
   function convertDriveUrl(url) {
     if (!url) return "";
-    const match1 = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
-    const match2 = url.match(/id=([a-zA-Z0-9_-]+)/);
+    // Pola 1: https://drive.google.com/file/d/FILE_ID/view
+    const match1 = url.match(/\/d\/([a-zA-Z0-9_-]{20,})/);
+    // Pola 2: https://drive.google.com/open?id=FILE_ID
+    const match2 = url.match(/id=([a-zA-Z0-9_-]{20,})/);
+
     const fileId = match1 ? match1[1] : (match2 ? match2[1] : null);
-    if (fileId) return `https://drive.google.com/uc?export=view&id=${fileId}`;
-    return url;
+    if (fileId) {
+      return `https://drive.google.com/uc?export=view&id=${fileId}`;
+    }
+    return ""; // URL tidak valid
   }
 
   $(document).ready(function () {
@@ -101,7 +106,8 @@
 
         let tbodyHTML = "";
         data.forEach(row => {
-          const fotoUrl = convertDriveUrl(row["FOTO TEGANGAN KWH METER"]);
+          const fotoRaw = row["FOTO TEGANGAN KWH METER"];
+          const fotoUrl = convertDriveUrl(fotoRaw);
           const imgTag = fotoUrl
             ? `<img src="${fotoUrl}" class="thumbnail" alt="Foto" data-bs-toggle="modal" data-bs-target="#imageModal">`
             : "-";
@@ -141,7 +147,7 @@
           }
         });
 
-        // Event zoom gambar saat diklik
+        // Saat klik gambar thumbnail → tampilkan di modal
         $(document).on("click", "img.thumbnail", function () {
           const src = $(this).attr("src");
           $("#modalImage").attr("src", src);
