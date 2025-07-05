@@ -22,6 +22,8 @@
     }
     .modal-img {
       width: 100%;
+      max-height: 80vh;
+      object-fit: contain;
     }
   </style>
 </head>
@@ -51,18 +53,18 @@
   </table>
 </div>
 
-<!-- Modal untuk zoom gambar -->
-<div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
+<!-- Modal Zoom Gambar -->
+<div class="modal fade" id="imageModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-lg">
     <div class="modal-content">
       <div class="modal-body text-center">
-        <img id="modalImage" class="modal-img" src="" alt="Preview" />
+        <img id="modalImage" class="modal-img" src="" alt="Foto Zoom" />
       </div>
     </div>
   </div>
 </div>
 
-<!-- Script dependencies -->
+<!-- Scripts -->
 <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
@@ -86,8 +88,8 @@
       header: true,
       complete: function (results) {
         const data = results.data;
-        const garduSet = new Set();
 
+        const garduSet = new Set();
         data.forEach(item => {
           const gardu = item["KODE GARDU (ditulis huruf besar tanpa spasi, contoh ED001)"];
           if (gardu) garduSet.add(gardu);
@@ -98,11 +100,12 @@
         });
 
         let tbodyHTML = "";
-        data.forEach((row, index) => {
+        data.forEach(row => {
           const fotoUrl = convertDriveUrl(row["FOTO TEGANGAN KWH METER"]);
           const imgTag = fotoUrl
-            ? `<img src="${fotoUrl}" class="thumbnail" alt="Foto" data-bs-toggle="modal" data-bs-target="#imageModal" data-src="${fotoUrl}">`
+            ? `<img src="${fotoUrl}" class="thumbnail" alt="Foto" data-bs-toggle="modal" data-bs-target="#imageModal">`
             : "-";
+
           tbodyHTML += `<tr>
             <td>${row.Timestamp || ""}</td>
             <td>${row["KODE GARDU (ditulis huruf besar tanpa spasi, contoh ED001)"] || ""}</td>
@@ -111,6 +114,7 @@
             <td>${row["TEGANGAN TERUKUR (Contoh = 220V)"] || ""}</td>
           </tr>`;
         });
+
         $("#dataTable tbody").html(tbodyHTML);
 
         const table = $("#dataTable").DataTable({
@@ -137,9 +141,9 @@
           }
         });
 
-        // Saat klik gambar, masukkan ke modal
+        // Event zoom gambar saat diklik
         $(document).on("click", "img.thumbnail", function () {
-          const src = $(this).data("src");
+          const src = $(this).attr("src");
           $("#modalImage").attr("src", src);
         });
       }
