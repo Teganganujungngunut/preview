@@ -3,17 +3,14 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Data Spreadsheet dengan Gambar</title>
+<title>Data Tegangan KWH Meter</title>
 
-<!-- Bootstrap CSS -->
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
-
-<!-- DataTables CSS -->
 <link href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" rel="stylesheet" />
 
 <style>
   img.thumbnail {
-    width: 80px;
+    width: 120px;
     height: auto;
   }
 </style>
@@ -21,22 +18,24 @@
 <body>
 
 <div class="container mt-4">
-  <h2 class="mb-4">Data dari Spreadsheet</h2>
+  <h2 class="mb-4">Data Tegangan KWH Meter</h2>
 
+  <!-- Filter KODE GARDU -->
   <div class="mb-3">
-    <label for="filterKategori" class="form-label">Filter Kategori:</label>
-    <select id="filterKategori" class="form-select" style="max-width: 300px;">
-      <option value="">Semua Kategori</option>
+    <label for="filterGardu" class="form-label">Filter KODE GARDU:</label>
+    <select id="filterGardu" class="form-select" style="max-width: 300px;">
+      <option value="">Semua Gardu</option>
     </select>
   </div>
 
   <table id="dataTable" class="display table table-striped" style="width:100%">
     <thead>
       <tr>
-        <th>ID</th>
-        <th>Nama</th>
-        <th>Kategori</th>
-        <th>Gambar</th>
+        <th>Timestamp</th>
+        <th>KODE GARDU</th>
+        <th>KODE TIANG</th>
+        <th>FOTO TEGANGAN KWH METER</th>
+        <th>TEGANGAN TERUKUR</th>
       </tr>
     </thead>
     <tbody></tbody>
@@ -57,23 +56,26 @@
       complete: function(results) {
         const data = results.data;
 
-        // Ambil kategori unik
-        const kategoriSet = new Set();
+        // Ambil KODE GARDU unik untuk filter
+        const garduSet = new Set();
         data.forEach(item => {
-          if(item.Kategori) kategoriSet.add(item.Kategori);
+          if(item["KODE GARDU (ditulis huruf besar tanpa spasi, contoh ED001)"]) {
+            garduSet.add(item["KODE GARDU (ditulis huruf besar tanpa spasi, contoh ED001)"]);
+          }
         });
-        kategoriSet.forEach(kat => {
-          $("#filterKategori").append(`<option value="${kat}">${kat}</option>`);
+        garduSet.forEach(gardu => {
+          $("#filterGardu").append(`<option value="${gardu}">${gardu}</option>`);
         });
 
         // Isi tabel
         let tbodyHTML = "";
         data.forEach(row => {
           tbodyHTML += `<tr>
-            <td>${row.ID || ""}</td>
-            <td>${row.Nama || ""}</td>
-            <td>${row.Kategori || ""}</td>
-            <td>${row["Gambar URL"] ? `<img src="${row["Gambar URL"]}" alt="${row.Nama}" class="thumbnail" />` : ""}</td>
+            <td>${row.Timestamp || ""}</td>
+            <td>${row["KODE GARDU (ditulis huruf besar tanpa spasi, contoh ED001)"] || ""}</td>
+            <td>${row["KODE TIANG  (ditulis huruf besar tanpa spasi, contoh A2B3)"] || ""}</td>
+            <td>${row["FOTO TEGANGAN KWH METER"] ? `<img src="${row["FOTO TEGANGAN KWH METER"]}" alt="Foto Tegangan" class="thumbnail" />` : ""}</td>
+            <td>${row["TEGANGAN TERUKUR (Contoh = 220V)"] || ""}</td>
           </tr>`;
         });
         $("#dataTable tbody").html(tbodyHTML);
@@ -94,13 +96,13 @@
           }
         });
 
-        // Filter kategori
-        $("#filterKategori").on("change", function() {
+        // Filter KODE GARDU
+        $("#filterGardu").on("change", function() {
           const val = $(this).val();
           if(val) {
-            table.column(2).search('^' + val + '$', true, false).draw();
+            table.column(1).search('^' + val + '$', true, false).draw();
           } else {
-            table.column(2).search('').draw();
+            table.column(1).search('').draw();
           }
         });
       }
