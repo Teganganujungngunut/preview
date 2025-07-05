@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Data Tegangan KWH Meter</title>
+  <title>Preview Tegangan Ujung Gardu</title>
 
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
   <link href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" rel="stylesheet" />
@@ -30,7 +30,7 @@
 <body>
 
 <div class="container mt-4">
-  <h2 class="mb-4">Data Tegangan KWH Meter</h2>
+  <h2 class="mb-4">Data Tegangan Ujung Gardu</h2>
 
   <div class="mb-3">
     <label for="filterGardu" class="form-label">Filter KODE GARDU:</label>
@@ -71,20 +71,18 @@
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
 <script>
+  // Ganti URL CSV sesuai spreadsheet-mu
   const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQvcvccennJrLifuLh1_5pgrJ9ZDlWfm8u9KcDIVR7wlkxw4Lv7ignzW6E6H8q8LfvSxpphU9nmOR5K/pub?gid=420915734&single=true&output=csv";
+
+  // Gunakan Google Apps Script milikmu
+  const SCRIPT_BASE = "https://script.google.com/macros/s/AKfycbx89zOuqf1AF5F4h70VwLMxTehQcnio0LiYXdPAo5SatmiHfekDZ0OtlCeMsZxMUNoNdw/exec";
 
   function convertDriveUrl(url) {
     if (!url) return "";
-    // Pola 1: https://drive.google.com/file/d/FILE_ID/view
     const match1 = url.match(/\/d\/([a-zA-Z0-9_-]{20,})/);
-    // Pola 2: https://drive.google.com/open?id=FILE_ID
     const match2 = url.match(/id=([a-zA-Z0-9_-]{20,})/);
-
     const fileId = match1 ? match1[1] : (match2 ? match2[1] : null);
-    if (fileId) {
-      return `https://drive.google.com/uc?export=view&id=${fileId}`;
-    }
-    return ""; // URL tidak valid
+    return fileId ? `${SCRIPT_BASE}?id=${fileId}` : "";
   }
 
   $(document).ready(function () {
@@ -147,7 +145,7 @@
           }
         });
 
-        // Saat klik gambar thumbnail → tampilkan di modal
+        // Zoom gambar ke modal saat diklik
         $(document).on("click", "img.thumbnail", function () {
           const src = $(this).attr("src");
           $("#modalImage").attr("src", src);
