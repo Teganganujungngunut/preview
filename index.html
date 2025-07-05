@@ -1,26 +1,27 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Data Tegangan KWH Meter</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Data Tegangan KWH Meter</title>
 
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
-<link href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" rel="stylesheet" />
 
-<style>
-  img.thumbnail {
-    width: 120px;
-    height: auto;
-  }
-</style>
+  <style>
+    img.thumbnail {
+      width: 120px;
+      height: auto;
+      border-radius: 6px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+  </style>
 </head>
 <body>
 
 <div class="container mt-4">
   <h2 class="mb-4">Data Tegangan KWH Meter</h2>
 
-  <!-- Filter KODE GARDU -->
   <div class="mb-3">
     <label for="filterGardu" class="form-label">Filter KODE GARDU:</label>
     <select id="filterGardu" class="form-select" style="max-width: 300px;">
@@ -34,7 +35,7 @@
         <th>Timestamp</th>
         <th>KODE GARDU</th>
         <th>KODE TIANG</th>
-        <th>FOTO TEGANGAN KWH METER</th>
+        <th>FOTO</th>
         <th>TEGANGAN TERUKUR</th>
       </tr>
     </thead>
@@ -42,6 +43,7 @@
   </table>
 </div>
 
+<!-- Script dependencies -->
 <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
@@ -49,19 +51,27 @@
 <script>
   const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQvcvccennJrLifuLh1_5pgrJ9ZDlWfm8u9KcDIVR7wlkxw4Lv7ignzW6E6H8q8LfvSxpphU9nmOR5K/pub?gid=420915734&single=true&output=csv";
 
-  $(document).ready(function() {
+  // Fungsi konversi URL Google Drive ke bentuk yang bisa ditampilkan
+  function convertDriveUrl(url) {
+    const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+    if (match && match[1]) {
+      return `https://drive.google.com/uc?export=view&id=${match[1]}`;
+    }
+    return url;
+  }
+
+  $(document).ready(function () {
     Papa.parse(csvUrl, {
       download: true,
       header: true,
-      complete: function(results) {
+      complete: function (results) {
         const data = results.data;
 
-        // Ambil KODE GARDU unik untuk filter
+        // Buat opsi filter berdasarkan KODE GARDU
         const garduSet = new Set();
         data.forEach(item => {
-          if(item["KODE GARDU (ditulis huruf besar tanpa spasi, contoh ED001)"]) {
-            garduSet.add(item["KODE GARDU (ditulis huruf besar tanpa spasi, contoh ED001)"]);
-          }
+          const gardu = item["KODE GARDU (ditulis huruf besar tanpa spasi, contoh ED001)"];
+          if (gardu) garduSet.add(gardu);
         });
         garduSet.forEach(gardu => {
           $("#filterGardu").append(`<option value="${gardu}">${gardu}</option>`);
@@ -70,18 +80,19 @@
         // Isi tabel
         let tbodyHTML = "";
         data.forEach(row => {
+          const fotoUrl = row["FOTO TEGANGAN KWH METER"] ? convertDriveUrl(row["FOTO TEGANGAN KWH METER"]) : "";
           tbodyHTML += `<tr>
             <td>${row.Timestamp || ""}</td>
             <td>${row["KODE GARDU (ditulis huruf besar tanpa spasi, contoh ED001)"] || ""}</td>
             <td>${row["KODE TIANG  (ditulis huruf besar tanpa spasi, contoh A2B3)"] || ""}</td>
-            <td>${row["FOTO TEGANGAN KWH METER"] ? `<img src="${row["FOTO TEGANGAN KWH METER"]}" alt="Foto Tegangan" class="thumbnail" />` : ""}</td>
+            <td>${fotoUrl ? `<img src="${fotoUrl}" class="thumbnail" alt="Foto">` : "-"}</td>
             <td>${row["TEGANGAN TERUKUR (Contoh = 220V)"] || ""}</td>
           </tr>`;
         });
         $("#dataTable tbody").html(tbodyHTML);
 
-        // Init DataTables
-        const table = $('#dataTable').DataTable({
+        // Inisialisasi DataTable
+        const table = $("#dataTable").DataTable({
           pageLength: 10,
           lengthChange: false,
           language: {
@@ -96,10 +107,10 @@
           }
         });
 
-        // Filter KODE GARDU
-        $("#filterGardu").on("change", function() {
+        // Filter berdasarkan KODE GARDU
+        $("#filterGardu").on("change", function () {
           const val = $(this).val();
-          if(val) {
+          if (val) {
             table.column(1).search('^' + val + '$', true, false).draw();
           } else {
             table.column(1).search('').draw();
